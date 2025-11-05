@@ -12,7 +12,7 @@ const TollForm = ({ setPassInfo, setLeaderboard }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8081/api/toll/process", {
+      const res = await axios.post("https://toll-9dnh.onrender.com/api/toll/process", {
         vehicleNumber,
         vehicleType,
         tollId: Number(tollId),
@@ -28,7 +28,7 @@ const TollForm = ({ setPassInfo, setLeaderboard }) => {
   // ✅ Buy New Pass
   const buyPass = async (type) => {
     try {
-      const res = await axios.post("http://localhost:8081/api/toll/buy", {
+      const res = await axios.post("https://toll-9dnh.onrender.com/api/toll/buy", {
         vehicleNumber,
         vehicleType,
         tollId: Number(tollId),
@@ -44,7 +44,7 @@ const TollForm = ({ setPassInfo, setLeaderboard }) => {
   // ✅ Get Leaderboard
   const getLeaderboard = async () => {
     try {
-      const res = await axios.get("http://localhost:8081/api/toll/leaderboard");
+      const res = await axios.get("https://toll-9dnh.onrender.com/api/toll/leaderboard");
       setLeaderboard(res.data);
       console.log(res.data)
     } catch (err) {
