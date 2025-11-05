@@ -45,44 +45,65 @@ export const processVehicle = (req, res) => {
 
 // Purchase a pass
 export const buyPass = (req, res) => {
-  const { vehicleNumber, tollId, passType, vehicleType, boothId } = req.body;
+  try {
+    const { vehicleNumber, vehicleType, tollId, boothId } = req.body;
 
-  const toll = tolls.find((t) => t.id === tollId);
-  const booth = toll.booths.find((b) => b.id === boothId);
+    const toll = tolls.find((t) => t.id === tollId);
+    if (!toll) return res.status(404).json({ message: "Toll not found" });
 
-  const amount = toll.charges[vehicleType][passType];
-  const newPass = {
-    vehicleNumber,
-    tollId,
-    type: passType,
-    vehicleType,
-    purchaseTime: new Date(),
-    used: false,
-    uses: 1,
-  };
+    const booth = toll.booths.find((b) => b.id === boothId);
+    if (!booth) return res.status(404).json({ message: "Booth not found" });
 
-  vehiclePasses.push(newPass);
-  booth.vehiclesProcessed++;
-  booth.totalCollected += amount;
+    // determine charge (you can change 'single' if you pass type dynamically)
+    const type = "single"; // or get from req.body.type
+    const amount = toll.charges[vehicleType][type];
 
-  res.json({
-    message: `${passType} pass purchased successfully`,
-    passDetails: newPass,
-  });
+    // update booth stats ✅
+    booth.vehiclesProcessed += 1;
+    booth.totalCollected += amount;
+
+    // record vehicle pass
+    vehiclePasses.push({
+      vehicleNumber,
+      vehicleType,
+      tollId,
+      boothId,
+      type,
+      amount,
+      time: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: "Pass bought successfully",
+      vehicleNumber,
+      tollName: toll.name,
+      boothName: booth.name,
+      amount,
+      totalCollected: booth.totalCollected,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error processing pass" });
+  }
 };
+
 
 // Leaderboard
-export const getLeaderboard = (req, res) => {
-  const leaderboard = tolls.flatMap((toll) =>
-    toll.booths.map((booth) => ({
-      toll: toll.name,
-      booth: booth.name,
-      vehiclesProcessed: booth.vehiclesProcessed,
-      totalCollected: booth.totalCollected,
-    }))
-  );
 
-  leaderboard.sort((a, b) => b.totalCollected - a.totalCollected);
+export const getLeaderboard = (req, res) => {
+  const leaderboard = [];
+
+  tolls.forEach((toll) => {
+    toll.booths.forEach((booth) => {
+      leaderboard.push({
+        toll: toll.name,
+        booth: booth.name,
+        vehiclesProcessed: booth.vehiclesProcessed,
+        totalCollected: booth.totalCollected,
+      });
+    });
+  });
+
   res.json(leaderboard);
 };
-
