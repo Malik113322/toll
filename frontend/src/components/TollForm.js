@@ -46,6 +46,7 @@ const TollForm = ({ setPassInfo, setLeaderboard }) => {
     try {
       const res = await axios.get("http://localhost:8081/api/toll/leaderboard");
       setLeaderboard(res.data);
+      console.log(res.data)
     } catch (err) {
       console.log(err);
     }
